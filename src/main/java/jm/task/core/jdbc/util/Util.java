@@ -13,8 +13,11 @@ public class Util {
         try {
             Driver driver = new NonRegisteringDriver();
             DriverManager.registerDriver(driver);
-            return DriverManager.getConnection(URL, name, password);
+            connection = DriverManager.getConnection(URL, name, password);
+            connection.setAutoCommit(false);
+            return connection;
         } catch (SQLException e) {
+            e.getStackTrace();
         }
         return connection;
     }

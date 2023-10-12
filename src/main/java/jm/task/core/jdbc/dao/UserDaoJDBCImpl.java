@@ -8,64 +8,84 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
-    Connection connection = new Util().getConnection();
+
 
     public UserDaoJDBCImpl() {
-    }
 
+    }
 
     @Override
     public void createUsersTable() {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS users " +
-                    "(id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), " +
-                    "last_Name VARCHAR(255), age INT)");
-            System.out.println("Table created");
+        String create = "CREATE TABLE IF NOT EXISTS users " +
+                "(id BIGINT PRIMARY KEY AUTO_INCREMENT, " +
+                "name VARCHAR(255), last_Name VARCHAR(255), age TINYINT)";
+        try (Connection connection = new Util().getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(create);
+
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
     }
 
     @Override
     public void dropUsersTable() {
-        try (Statement statement = connection.createStatement();) {
-            statement.executeUpdate("DROP TABLE IF EXISTS users");
-            System.out.println("Table dropped");
+        String drop = "DROP TABLE IF EXISTS users";
+        try (Connection connection = new Util().getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(drop);
+
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
+
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "INSERT INTO users (name, last_Name, age) VALUES (?, ?, ?)")) {
+        String save = "INSERT INTO users (name, last_Name, age) VALUES (?, ?, ?)";
+
+        try (Connection connection = new Util().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement
+                     (save)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, lastName);
             preparedStatement.setByte(3, age);
             preparedStatement.executeUpdate();
-            System.out.println("User saved");
+
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
     }
 
     @Override
     public void removeUserById(long id) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "DELETE FROM users WHERE id = ?")) {
+        String remove = "DELETE FROM users WHERE id = ?";
+
+        try (Connection connection = new Util().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement
+                     (remove);) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
-            System.out.println("User deleted");
+
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
     }
 
     @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        try (ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM users")) {
+        String allUsers = "SELECT id, Name, last_Name, Age FROM users";
+
+        try (Connection connection = new Util().getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(allUsers);
+
             while (resultSet.next()) {
                 long id = resultSet.getLong("id");
                 String name = resultSet.getString("name");
@@ -73,20 +93,24 @@ public class UserDaoJDBCImpl implements UserDao {
                 byte age = resultSet.getByte("age");
                 User user = new User(id, name, lastName, age);
                 users.add(user);
+
+                connection.commit();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
         return users;
     }
 
     @Override
     public void cleanUsersTable() {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("TRUNCATE TABLE users");
-            System.out.println("Table cleaned");
+        String clean = "TRUNCATE TABLE users";
+        try (Connection connection = new Util().getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(clean);
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getStackTrace();
         }
     }
 }
